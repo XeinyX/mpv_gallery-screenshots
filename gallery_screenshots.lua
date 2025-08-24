@@ -923,7 +923,8 @@ local function toggle_gallery()
         if build_and_draw_page() then
             state.active = true
             bind_gallery_keys()
-            mp.osd_message("[Gallery] Goto: click, Mark: m, Select all: a, Unselect all: u, Delete: d, Prev. page: [, Next page: ] Export: c/e/x", 5)
+            mp.osd_message("[Gallery] Goto: click | Mark: m | Select all: a | Unselect all: u | Delete: d | Prev. page: [ | Next page: ] | Export: c/e/x", 5)
+
         end
     end
 end
