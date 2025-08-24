@@ -46,7 +46,7 @@ pip install xlsxwriter pillow
 
 ## Installation
 
-1. Download `mpv-gallery-screenshots.lua` and place it in your mpv `scripts` folder.
+1. Download `gallery_screenshots.lua` and place it in your mpv `scripts` folder.
 2. Place `gallery_xlsx_export.py` next to the Lua file (same folder).
 3. Restart mpv.
 
