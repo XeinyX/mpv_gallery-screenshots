@@ -1,10 +1,7 @@
-# mpv_gallery-screenshots
-
-
 # MPV Gallery Screenshots Overlay
 
 A Lua user script for mpv that lets you:
-- Save frame-perfect screenshots to per-video folders
+- Save screenshots to per-video folders
 - Browse screenshots in an in-player tiled gallery overlay
 - Select, delete, and export as contact sheets (PNG), CSV, and XLSX
 - Insert timecode labels on thumbnails
@@ -16,11 +13,10 @@ Works on Linux, macOS, and Windows.
 
 ## Features
 
-- Screenshots saved to `images/<video_name>/f########.jpg` (or .png)
+- Screenshots saved to `../images/<video_name>/f########.jpg` (or .png)
 - In-player gallery overlay:
   - Grid navigation with paging
   - Click to seek to a screenshot's timestamp
-  - Selection and batch delete
 - Exports:
   - Contact sheets (per page or all pages) → `../exports/<video>_contact_sheet_pXX.png`
   - CSV (filename, timecode, seconds, frame) → `../exports/<video>_gallery.csv`
@@ -37,7 +33,7 @@ Works on Linux, macOS, and Windows.
 
 - mpv (0.35+ recommended; older builds may still work)
 - ffmpeg in PATH (for labeled thumbnails and contact sheet composition)
-- Python 3 (for XLSX export)
+- Python 3 (only for XLSX export)
   - `xlsxwriter` is required
   - `Pillow` (optional) enables physical resizing of images for smaller XLSX files
 
@@ -54,12 +50,21 @@ pip install xlsxwriter pillow
 2. Place `gallery_xlsx_export.py` next to the Lua file (same folder).
 3. Restart mpv.
 
-Typical script locations:
-- Linux: `~/.config/mpv/scripts/`
-- macOS: `~/Library/Application Support/mpv/scripts/`
-- Windows (portable): `portable_config/scripts/` next to `mpv.exe`
-- Windows (AppData): `%APPDATA%\mpv\scripts\`
-
+Python virtual environment (recommended):
+- Linux/macOS:
+  ```bash
+  python3 -m venv ~/venv-mpv
+  source ~/venv-mpv/bin/activate
+  pip install xlsxwriter pillow
+  # Then set PYTHON_PATH = "/home/you/venv-mpv/bin/python"
+  ```
+- Windows (PowerShell):
+  ```powershell
+  py -m venv C:\venv-mpv
+  C:\venv-mpv\Scripts\Activate.ps1
+  pip install xlsxwriter pillow
+  # Then set PYTHON_PATH = "C:\\venv-mpv\\Scripts\\python.exe"
+  ```
 ---
 
 ## Configuration
@@ -80,22 +85,6 @@ local GRID_COLS = 5
 local GRID_ROWS = 4
 local GRID_GAP  = 12
 ```
-
-Python virtual environment (recommended):
-- Linux/macOS:
-  ```bash
-  python3 -m venv ~/venv-mpv
-  source ~/venv-mpv/bin/activate
-  pip install xlsxwriter pillow
-  # Then set PYTHON_PATH = "/home/you/venv-mpv/bin/python"
-  ```
-- Windows (PowerShell):
-  ```powershell
-  py -m venv C:\venv-mpv
-  C:\venv-mpv\Scripts\Activate.ps1
-  pip install xlsxwriter pillow
-  # Then set PYTHON_PATH = "C:\\venv-mpv\\Scripts\\python.exe"
-  ```
 
 ---
 
