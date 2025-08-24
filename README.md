@@ -56,7 +56,11 @@ Python virtual environment (recommended):
   python3 -m venv ~/venv-mpv
   source ~/venv-mpv/bin/activate
   pip install xlsxwriter pillow
-  # Then set PYTHON_PATH = "/home/you/venv-mpv/bin/python"
+  which python
+  # Then set PYTHON_PATH to output of which python
+  # on Linux local PYTHON_PATH = "/home/<your_name>/venv-mpv/bin/python"
+  # on macOS local PYTHON_PATH = "/Users/<your_name>/venv-mpv/bin/python"
+  
   ```
 - Windows (PowerShell):
   ```powershell
@@ -76,11 +80,11 @@ Open the Lua file and adjust the user-configurable variables at the top:
 local PYTHON_PATH = nil
 
 -- Scale factor for images in XLSX (0.15–0.35 recommended).
--- With Pillow: images are physically resized → smaller XLSX.
--- Without Pillow: Excel visual scaling is used → larger XLSX.
+-- If Pillow is available, images will be physically resized (smaller XLSX).
+-- Otherwise, a visual scale will be applied by Excel (larger XLSX).
 local XLSX_IMG_SCALE = 0.20
 
--- Grid and layout
+-- Gallery grid
 local GRID_COLS = 5
 local GRID_ROWS = 4
 local GRID_GAP  = 12
@@ -92,23 +96,23 @@ local GRID_GAP  = 12
 
 Default key bindings:
 ```
-s                  Save screenshot to images/<video_name>/f########.jpg
+s                  Save screenshot → ../images/<video_name>/f########.jpg
 g                  Toggle gallery overlay on/off
 
 In gallery:
   Click            Seek to clicked thumbnail's time
-  Ctrl+Click       Toggle selection on a tile
-  Ctrl+LEFT/RIGHT  Go to previous/next page
-  A / U            Select all / Unselect all (current page)
-  Del              Delete selected (files + cache)
-  C                Export contact sheet (current page) → ../exports/<video>_contact_sheet_pXX.png
-  Shift+C          Export contact sheets for all pages
-  E                Export CSV → ../exports/<video>_gallery.csv
-  X                Export XLSX → ../exports/<video>.xlsx
+  m                Toggle selection on a tile
+  [  /  ]          Go to previous / next page
+  a  /  u          Select all / Unselect all (current page)
+  d                Delete selected (files + cache)
+  Shift+c          Export contact sheet (current page) → ../exports/<video>_contact_sheet_pXX.png
+  c                Export contact sheets for all pages
+  e                Export CSV → ../exports/<video>_gallery.csv
+  x                Export XLSX → ../exports/<video>.xlsx
 ```
 
 Notes:
-- Thumbnails are cached as BGRA raw frames in `images/<video>/.gallery_bgra/`.
+- Thumbnails are cached as BGRA raw frames in `../images/<video>/.gallery_bgra/`.
 - On significant cell size changes, the cache is purged and regenerated.
 
 ---
