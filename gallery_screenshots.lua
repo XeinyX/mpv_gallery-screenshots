@@ -29,8 +29,7 @@ local msg   = require "mp.msg"
 -- Example (Linux)  : "/home/you/venv-mpv/bin/python"
 -- Example (macOS)  : "/Users/you/venv-mpv/bin/python"
 -- Leave as nil to auto-detect ("python3", "python", "py").
--- local PYTHON_PATH = nil
-local PYTHON_PATH = '/Users/rasto.simocko/Documents/VENV/gallery/bin/python'
+local PYTHON_PATH = nil
 
 -- Scale factor for images in XLSX (0.15 - 0.35 recommended).
 -- If Pillow is available, images will be physically resized (smaller XLSX).
