@@ -29,7 +29,8 @@ local msg   = require "mp.msg"
 -- Example (Linux)  : "/home/you/venv-mpv/bin/python"
 -- Example (macOS)  : "/Users/you/venv-mpv/bin/python"
 -- Leave as nil to auto-detect ("python3", "python", "py").
-local PYTHON_PATH = nil
+-- local PYTHON_PATH = nil
+local PYTHON_PATH = '/Users/rasto.simocko/Documents/VENV/gallery/bin/python'
 
 -- Scale factor for images in XLSX (0.15 - 0.35 recommended).
 -- If Pillow is available, images will be physically resized (smaller XLSX).
@@ -209,6 +210,18 @@ local function ensure_parent_dir(path)
     local dir, _ = utils.split_path(path)
     if not dir or dir == "" then return true end
     return ensure_dir(dir)
+end
+
+-- Normalize a filesystem path using mpv; falls back to original on failure
+local function normpath(p)
+    if not p or p == "" then return p end
+    local ok, out = pcall(function()
+        return mp.command_native({"normalize-path", p})
+    end)
+    if ok and type(out) == "string" and out ~= "" then
+        return out
+    end
+    return p
 end
 
 local function file_exists(path)
@@ -416,14 +429,21 @@ end
 local function ensure_paths()
     local path = mp.get_property("path")
     if not path then return false end
-    local dir, file = utils.split_path(path)
-    if not dir or dir == "" then dir = mp.get_property("working-directory") or "." end
-    local video_name = strip_ext(file or "video")
-    local images_dir = join(dir, DIR_IMAGES_BASE, video_name)
-    local bgra_dir   = join(images_dir, ".gallery_bgra")
-    local exports_dir = join(dir, DIR_EXPORTS_NAME)
 
-    state.basedir     = dir
+    local dir, file = utils.split_path(path)
+    if not dir or dir == "" then
+        dir = mp.get_property("working-directory") or "."
+    end
+
+    local video_name = strip_ext(file or "video")
+
+    -- Normalize all derived paths (Windows-safe, but harmless on other OSes)
+    local basedir     = normpath(dir)
+    local images_dir  = normpath(join(basedir, DIR_IMAGES_BASE, video_name))
+    local bgra_dir    = normpath(join(images_dir, ".gallery_bgra"))
+    local exports_dir = normpath(join(basedir, DIR_EXPORTS_NAME))
+
+    state.basedir     = basedir
     state.video_name  = video_name
     state.images_dir  = images_dir
     state.bgra_dir    = bgra_dir
@@ -556,7 +576,6 @@ generate_bgra_with_mpv = function(src, dst, w, h, label_text, selected)
     return generate_bgra_auto(src, dst, w, h, label_text, selected)
 end
 
-
 -- Create or reuse a solid placeholder BGRA file to avoid blank grid while thumbnails are building
 local function ensure_placeholder_bgra(w, h)
     ensure_dir(state.bgra_dir)
@@ -569,7 +588,6 @@ local function ensure_placeholder_bgra(w, h)
     if f then f:write(data) f:close() end
     return path
 end
-
 
 -- Asynchronous subprocess runner using mpv's 'subprocess' command.
 -- This is the officially documented way to run external programs without blocking.
@@ -1676,7 +1694,6 @@ mp.observe_property("osd-dimensions", "native", function()
     -- schedule prewarm (debounce 1 s)
     schedule_thumbnail_regen(1.0)
 end)
-
 
 
 mp.add_forced_key_binding(KEY_SCREENSHOT,     "save-screenshot-custom", save_screenshot)
