@@ -13,14 +13,14 @@ Works on Linux, macOS, and Windows.
 
 ## Features
 
-- Screenshots saved to `../images/<video_name>/f########.jpg` (or .png)
+- Screenshots saved to `./images/<video_name>/f########.jpg` (or .png)
 - In-player gallery overlay:
   - Grid navigation with paging
   - Click to seek to a screenshot's timestamp
 - Exports:
-  - Contact sheets (per page or all pages) → `../exports/<video>_contact_sheet_pXX.png`
-  - CSV (filename, timecode, seconds, frame) → `../exports/<video>_gallery.csv`
-  - XLSX via Python (`xlsxwriter`, optional `Pillow`) → `../exports/<video>.xlsx`
+  - Contact sheets (per page or all pages) → `./exports/<video>_contact_sheet_pXX.png`
+  - CSV (filename, timecode, seconds, frame) → `./exports/<video>_gallery.csv`
+  - XLSX via Python (`xlsxwriter`, optional `Pillow`) → `./exports/<video>.xlsx`
     - Horizontal and vertical centering of images and text
     - Row height adjusted to the image height
     - Physical image resizing with Pillow (smaller XLSX); fallback to visual scaling if Pillow is not available
