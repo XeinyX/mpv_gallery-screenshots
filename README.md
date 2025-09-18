@@ -1,10 +1,10 @@
 # MPV Gallery Screenshots Overlay
 
 A Lua user script for mpv that lets you:
-- Save screenshots to per-video folders
-- Browse screenshots in an in-player tiled gallery overlay
+- Save screenshots to per‑video folders
+- Browse screenshots in an in‑player tiled gallery overlay
 - Select, delete, and export as contact sheets (PNG), CSV, and XLSX
-- Insert timecode labels on thumbnails
+- Render timecode labels on thumbnails
 - Keep XLSX files small via physical image resizing (Pillow), or fall back to visual scaling
 
 Works on Linux, macOS, and Windows.
@@ -29,6 +29,21 @@ Works on Linux, macOS, and Windows.
 
 ---
 
+## What’s new in this version
+
+- Safe margins are now relative to the viewport size:
+  - `SAFE_MARGIN_*_REL` are fractions of width/height; `GRID_GAP` remains in pixels.
+- Fullscreen alignment fix:
+  - Thumbnails are positioned using absolute OSD coordinates, so they match the clickable zones regardless of video vs. screen aspect ratio.
+- Screenshot resolution control:
+  - Configurable scale and minimum dimensions; preserves aspect ratio and never upscales above the source.
+- Clear limit for gallery size:
+  - Maximum thumbnails per page: 63 (example: 9×7 grid).
+
+All settings are configured at the top of the script.
+
+---
+
 ## Requirements
 
 - mpv (0.35+ recommended; older builds may still work)
@@ -46,7 +61,7 @@ pip install xlsxwriter pillow
 
 ## Installation
 
-1. Download `gallery_screenshots.lua` and place it in your mpv `scripts` folder.
+1. Place `gallery_screenshots.lua` into your mpv `scripts` folder.
 2. Place `gallery_xlsx_export.py` next to the Lua file (same folder).
 3. Restart mpv.
 
@@ -57,10 +72,7 @@ Python virtual environment (recommended):
   source ~/venv-mpv/bin/activate
   pip install xlsxwriter pillow
   which python
-  # Then set PYTHON_PATH to output of which python
-  # on Linux local PYTHON_PATH = "/home/<your_name>/venv-mpv/bin/python"
-  # on macOS local PYTHON_PATH = "/Users/<your_name>/venv-mpv/bin/python"
-  
+  # Then set PYTHON_PATH in the Lua script to the path printed by `which python`
   ```
 - Windows (PowerShell):
   ```powershell
@@ -69,85 +81,118 @@ Python virtual environment (recommended):
   pip install xlsxwriter pillow
   # Then set PYTHON_PATH = "C:\\venv-mpv\\Scripts\\python.exe"
   ```
+
 ---
 
 ## Configuration
 
-Open the Lua file and adjust the user-configurable variables at the top:
+Open the Lua file and adjust the user‑configurable variables at the top section. Defaults shown below may differ from your copy.
 
-```lua
--- Python interpreter (absolute path). Leave nil to auto-detect.
-local PYTHON_PATH = nil
+### Paths and Python
+- `PYTHON_PATH` (string or nil): Absolute path to Python interpreter. Leave `nil` to auto‑detect. It is recommended to set it up according to the instructions above.
+- `XLSX_SCRIPT_NAME` (string): Python exporter script name (kept next to the Lua script).
 
--- Scale factor for images in XLSX (0.15–0.35 recommended).
--- If Pillow is available, images will be physically resized (smaller XLSX).
--- Otherwise, a visual scale will be applied by Excel (larger XLSX).
-local XLSX_IMG_SCALE = 0.20
+### Gallery grid and layout
+- `GRID_COLS` (int): Number of columns per page.
+- `GRID_ROWS` (int): Number of rows per page.
+- `GRID_GAP` (int, px): Gap between tiles and edges.
+- `SAFE_MARGIN_TOP_REL` (0–1, of viewport height)
+- `SAFE_MARGIN_BOTTOM_REL` (0–1, of viewport height)
+- `SAFE_MARGIN_LEFT_REL` (0–1, of viewport width)
+- `SAFE_MARGIN_RIGHT_REL` (0–1, of viewport width)
 
--- Gallery grid
-local GRID_COLS = 5
-local GRID_ROWS = 4
-local GRID_GAP  = 12
-```
+Notes:
+- Maximum thumbnails per page is 63. Ensure `GRID_COLS × GRID_ROWS ≤ 63` (e.g., 9×7).
+- Margins scale with the window; the gap remains constant in pixels.
+
+### Screenshot output
+- `SCREENSHOT_SCALE` (0.01–1.0): Base downscale factor for saved screenshots (e.g., `0.5` → 50%).
+- `SCREENSHOT_MIN_WIDTH` (int, px): Minimum width; enforced without upscaling.
+- `SCREENSHOT_MIN_HEIGHT` (int, px): Minimum height; enforced without upscaling.
+
+Behavior:
+- Preserves aspect ratio.
+- Applies scale and then ensures the result meets the minimum width/height.
+- Never upscales beyond the source dimensions.
+
+### Time labels and selection visuals
+- `ENABLE_TIME_LABELS` (bool): Draw HH:MM:SS into thumbnails.
+- `LABEL_BOX_ALPHA` (0–1): Opacity of the time label background box.
+- `LABEL_MARGIN_X`, `LABEL_MARGIN_Y` (int, px): Text padding inside the box.
+- `LABEL_REL_SIZE` (0–1): Relative font size based on tile size.
+- `SELECT_BOX_ALPHA` (0–1): Opacity of the red bottom strip indicating selection.
+
+### Directories
+- `DIR_IMAGES_BASE` (string): Per‑video screenshots folder: `./images/<video_name>/`.
+- `DIR_EXPORTS_NAME` (string): Sibling exports folder: `./exports/`.
+
+### XLSX export
+- `XLSX_IMG_SCALE` (0.15–0.35 recommended): Image scale for XLSX export.
+  - With Pillow: physical resizing (smaller XLSX).
+  - Without Pillow: Excel visual scaling (larger XLSX, same look).
 
 ---
 
 ## Usage
 
-Default key bindings:
+Default key bindings (can be customized):
 ```
-s                  Save screenshot → ../images/<video_name>/f########.jpg
+s                  Save screenshot → ./images/<video_name>/f########.jpg
 g                  Toggle gallery overlay on/off
 
 In gallery:
   Click            Seek to clicked thumbnail's time
   m                Toggle selection on a tile
-  [  /  ]          Go to previous / next page
-  a  /  u          Select all / Unselect all (current page)
+  [  /  ]          Previous / Next page
+  a                Select/Unselect all (current page)
   d                Delete selected (files + cache)
-  Shift+c          Export contact sheet (current page) → ../exports/<video>_contact_sheet_pXX.png
+  Shift+c          Export contact sheet (current page) → ./exports/<video>_contact_sheet_pXX.png
   c                Export contact sheets for all pages
-  e                Export CSV → ../exports/<video>_gallery.csv
-  x                Export XLSX → ../exports/<video>.xlsx
+  e                Export CSV → ./exports/<video>_gallery.csv
+  x                Export XLSX → ./exports/<video>.xlsx
 ```
 
-Notes:
-- Thumbnails are cached as BGRA raw frames in `../images/<video>/.gallery_bgra/`.
-- On significant cell size changes, the cache is purged and regenerated.
+- Thumbnails are cached as raw BGRA in `./images/<video>/.gallery_bgra/` and rebuilt when window size changes.
 
 ---
 
-## Export Details
+## Exports
 
-- Contact sheets (PNG): use ffmpeg to compose the page tiles via `tile` filter (with padding/margins).
-- CSV: includes `filename`, `timecode` (HH:MM:SS), `seconds` (float), and `frame` number (if derivable from filename).
+- Contact sheets (PNG): ffmpeg `tile` filter composes the page (padding/margins from your grid settings).
+- CSV: `filename`, `timecode` (HH:MM:SS), `seconds` (float), `frame` (if derivable from filename).
 - XLSX (Python):
-  - Places images in column A, timecodes in column B
-  - Centers image and text both horizontally and vertically
-  - Sets row height to match the scaled image height
-  - With `--resize physical` and Pillow, actual files are resized to reduce XLSX size
-  - Without Pillow, falls back to Excel visual scaling (larger XLSX but visually identical)
+  - Images in column A, timecodes in column B
+  - Horizontal and vertical centering
+  - Row height set to the image height
+  - Physical resizing with Pillow; otherwise visual scaling
+
+---
+
+## File structure
+
+For a video at `.../movie.ext`:
+```
+.../images/movie/               # per-video screenshots
+.../images/movie/.gallery_bgra  # cached BGRA tiles (auto-managed)
+.../exports/                    # contact sheets, CSV, XLSX
+```
+
+Screenshots are named `f########.jpg` by default (based on estimated frame number).
 
 ---
 
 ## Troubleshooting
 
-- "Python not found":
-  - Set `PYTHON_PATH` in the Lua script to your interpreter
-  - Ensure Python is in PATH (`python3`, `python`, or `py`)
-
-- XLSX is too large:
-  - Install Pillow and use physical resizing (default behavior if Pillow is available)
-  - Lower `XLSX_IMG_SCALE` (e.g., `0.18` or `0.16`)
-
-- No timecode labels on thumbnails:
-  - Ensure `ffmpeg` is installed and in PATH
-
-- Errors about `mp.get_script_file`:
-  - The script includes a safe fallback that uses `debug.getinfo`; make sure you’re using the latest script
-
+- ffmpeg not found:
+  - Install ffmpeg and ensure it’s in PATH.
+- Python not found (XLSX):
+  - Set `PYTHON_PATH` in the Lua script or ensure `python3`/`python` is in PATH.
+- XLSX too large:
+  - Install Pillow to enable physical resizing; lower `XLSX_IMG_SCALE`.
+- Gallery looks offset in fullscreen:
+  - Fixed in this version (absolute OSD coordinates). If you still see issues, ensure you’re running the latest script.
 - Logging:
-  - Run mpv with a log file to capture script output:
+  - Run mpv with logging to capture script output:
     ```bash
     mpv --log-file=mpv.log --msg-level=script=trace yourvideo.mkv
     ```
@@ -156,7 +201,7 @@ Notes:
 
 ## License
 
-MIT License. See `LICENSE` file.
+MIT License. See `LICENSE`.
 
 ---
 
